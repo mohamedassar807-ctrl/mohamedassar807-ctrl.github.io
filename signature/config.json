@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "revision": "BP-CENTRAL-V1",
+  "enabled": true,
+  "pilot": {
+    "allowedSenderSha256": [
+      "72ebd08b316bd4aea897213ef8dcbeae37b61344724162ed959797736bc73c9d"
+    ]
+  },
+  "fields": {
+    "greeting": "Kind regards,",
+    "organization": "Blueprint central signature pilot"
+  },
+  "logo": {
+    "base64": "iVBORw0KGgoAAAANSUhEUgAAACIAAAAiCAYAAAA6RwvCAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAEeSURBVFhHzdhBEoIwDIVh4EoeQJd6YrceQM+kvo5hQNokLymO/4aF0/ajlBl1fL4bEp0uj3K9XQ/lGi0MEcB3UdD0uVK1EEj7TIuGeBaKYCgIswCLcUMid8mMcUEiCMk71oRYE+Etsd4UD0aFeBBSFtOEMAgpg6lCIggpitlAMggpgllBeiAkFjNDeiIkBlMgeyAkL6Z6WJdlEJJnjvF4vje/BvRALNN23tyRXzVpd22dHSZtLhjMHemB8cxRINZZyGCssbL2vCN7YLwItHo0PTEMAm3OSA8Mi0DVw5rBRBCoCkERTBSBmhDEYDII5PqlZy1iZSGQuiOSZ6JW3rEuCIpgmDFuCGImZuEUBHkWiOweDUHaQhEE+pM/aobhBZaOpYLJeeeoAAAAAElFTkSuQmCC",
+    "fileName": "blueprint-logo.png",
+    "alt": "Blueprint pilot logo",
+    "width": 34,
+    "height": 34
+  },
+  "assignments": {
+    "newMail": "standard",
+    "reply": "standard",
+    "forward": "standard"
+  },
+  "templates": {
+    "standard": {
+      "html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2937;\">{{greeting}}<br><br><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td valign=\"middle\" style=\"padding-right:10px;border-right:2px solid #3159bb;\">{{logo}}</td><td style=\"padding-left:10px;\"><strong>{{displayName}}</strong><br><a href=\"mailto:{{email}}\">{{email}}</a><br><span style=\"font-size:10pt;color:#526174;\">{{organization}}</span></td></tr></table><p style=\"font-size:9pt;color:#64748b;\">{{revision}}</p></div>",
+      "text": "{{greeting}}\n\n{{displayName}}\n{{email}}\n{{organization}}\n{{revision}}"
+    }
+  }
+}

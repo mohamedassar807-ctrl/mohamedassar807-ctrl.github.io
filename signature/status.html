@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Blueprint central signatures</title>
+  <link rel="stylesheet" href="status.css">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script src="runtime.js"></script>
+  <script src="status.js" defer></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Blueprint pilot</p>
+    <h1>Your managed signature</h1>
+    <p>The shared template is managed in GitHub. Your name and email are filled in by Outlook on this device.</p>
+    <p id="status" role="status">Loading the shared template…</p>
+    <dl id="details" hidden>
+      <dt>Template revision</dt><dd id="revision"></dd>
+      <dt>Outlook profile</dt><dd id="profile"></dd>
+      <dt>Pilot scope</dt><dd id="scope"></dd>
+    </dl>
+    <label for="compose-type">Preview for</label>
+    <select id="compose-type">
+      <option value="newMail">New message</option>
+      <option value="reply">Reply</option>
+      <option value="forward">Forward</option>
+    </select>
+    <iframe id="preview" title="Signature preview" sandbox="" referrerpolicy="no-referrer"></iframe>
+    <button id="refresh" type="button">Refresh preview</button>
+    <p>Fresh messages, replies, and forwards load the current published template. Refreshing this preview does not change the message you are writing.</p>
+    <p class="admin"><a href="https://github.com/mohamedassar807-ctrl/mohamedassar807-ctrl.github.io/edit/main/signature/config.json" target="_blank" rel="noopener noreferrer">Edit the shared template in GitHub</a><br>Publishing changes requires the repository owner’s GitHub access.</p>
+  </main>
+</body>
+</html>
