@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="MailApp">
   <Id>2BC6583B-68FB-45E7-8AB2-A06C31B10D94</Id>
-  <Version>1.1.0.1</Version>
+  <Version>1.2.0.0</Version>
   <ProviderName>Blueprint Signature Pilot</ProviderName>
   <DefaultLocale>en-us</DefaultLocale>
   <DisplayName DefaultValue="Blueprint Central Signatures" />

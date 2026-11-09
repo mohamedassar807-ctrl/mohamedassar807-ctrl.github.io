@@ -1,4 +1,4 @@
-/* Blueprint pilot: preview only. No message body or recipient data is read here. */
+/* Blueprint pilot: read-only preview and a local, explicit draft-marker check. */
 /* global Office, BlueprintSignature */
 (function () {
   "use strict";
@@ -6,6 +6,64 @@
   var profile;
   var configUrl = "https://mohamedassar807-ctrl.github.io/signature/config.json";
   function el(id) { return document.getElementById(id); }
+  var runtimeVersion = typeof BlueprintSignature.runtimeVersion === "string" ? BlueprintSignature.runtimeVersion : "unavailable";
+  var supportsV2 = typeof BlueprintSignature.supportsSchemaVersion === "function" && BlueprintSignature.supportsSchemaVersion(2);
+  el("runtime-info").textContent = "Runtime " + runtimeVersion + " · policy schema 2 " + (supportsV2 ? "supported" : "not supported");
+  function checkDraft() {
+    var item = Office.context && Office.context.mailbox && Office.context.mailbox.item;
+    var finished = false;
+    el("check-draft").disabled = true;
+    el("draft-check").textContent = "Checking this draft locally…";
+    var timer = setTimeout(function () { finish("Unconfirmed. The draft check timed out; try again in a fresh new HTML message."); }, 5000);
+    function finish(message) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      el("draft-check").textContent = message;
+      el("check-draft").disabled = false;
+    }
+    function invoke(owner, method, args, callback) {
+      if (finished) return;
+      if (!owner || typeof owner[method] !== "function") { finish("Unconfirmed. This draft does not expose the required Outlook APIs."); return; }
+      var responded = false;
+      try {
+        owner[method].apply(owner, args.concat([function (result) {
+          if (finished || responded) return;
+          responded = true;
+          if (!result || !(result.status === "succeeded" || (Office.AsyncResultStatus && result.status === Office.AsyncResultStatus.Succeeded))) {
+            finish("Unconfirmed. Outlook could not read this draft for the upgrade check.");
+            return;
+          }
+          try { callback(result.value); }
+          catch (error) { finish("Unconfirmed. Outlook could not complete this draft check."); }
+        }]));
+      } catch (error) { finish("Unconfirmed. Outlook could not complete this draft check."); }
+    }
+    if (!supportsV2 || typeof BlueprintSignature.htmlRuntimeMarker !== "string") {
+      finish("Unconfirmed. This status pane did not load the V2-capable runtime.");
+      return;
+    }
+    invoke(item, "getComposeTypeAsync", [], function (compose) {
+      if (!compose || (compose.composeType !== "newEmail" && compose.composeType !== "newMail")) {
+        finish("Unconfirmed. Use a fresh new HTML message; a marker in quoted reply or forward history cannot confirm this draft.");
+        return;
+      }
+      invoke(item.body, "getTypeAsync", [], function (bodyType) {
+        if (bodyType !== "html") {
+          finish("Unconfirmed. Compose a fresh new HTML message for this upgrade check; plain text has no hidden runtime marker.");
+          return;
+        }
+        var coercion = Office.CoercionType ? Office.CoercionType.Html : "html";
+        invoke(item.body, "getAsync", [coercion], function (html) {
+          // The body stays inside this callback. It is not logged, persisted,
+          // sent in a request, or returned through a host bridge.
+          finish(typeof html === "string" && html.indexOf(BlueprintSignature.htmlRuntimeMarker) !== -1
+            ? "Runtime " + runtimeVersion + " applied this draft."
+            : "Unconfirmed. The expected runtime marker was not found. Check a fresh new HTML message after the add-in update.");
+        });
+      });
+    });
+  }
   function preview() {
     if (!config || !profile) return;
     var html = BlueprintSignature.render(config, profile, el("compose-type").value, "preview-logo.png", "html");
@@ -50,6 +108,8 @@
     profile = Office.context.mailbox.userProfile;
     el("compose-type").addEventListener("change", preview);
     el("refresh").addEventListener("click", load);
+    el("check-draft").addEventListener("click", checkDraft);
+    el("check-draft").disabled = false;
     load();
   });
 })();

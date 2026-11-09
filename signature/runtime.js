@@ -6,6 +6,8 @@
   "use strict";
 
   var CONFIG_URL = "https://mohamedassar807-ctrl.github.io/signature/config.json";
+  var RUNTIME_VERSION = "1.2.0.0";
+  var HTML_RUNTIME_MARKER = "<!--BlueprintRuntime:" + RUNTIME_VERSION + "-->";
   var MAX_CONFIG_BYTES = 128 * 1024;
   var MAX_LOGO_BASE64 = 64 * 1024;
   var notificationKey = "blueprint-central-signature-status";
@@ -180,16 +182,19 @@
     var signature = [137,80,78,71,13,10,26,10];
     for (i = 0; i < signature.length; i += 1) if (prefix[i] !== signature[i]) fail("Logo is not PNG data.");
   }
+  function supportsSchemaVersion(version) { return version === 1 || version === 2; }
   function validateConfig(config) {
     var serialized;
     try { serialized = JSON.stringify(config); } catch (error) { fail("Configuration cannot be serialized."); }
     if (typeof serialized !== "string" || utf8Bytes(serialized).length > MAX_CONFIG_BYTES) fail("Configuration exceeds 128 KiB.");
-    checkKeys(config, ["schemaVersion","revision","enabled","pilot","fields","logo","assignments","templates"], "configuration");
-    if (config.schemaVersion !== 1 || typeof config.enabled !== "boolean") fail("Unsupported configuration schema.");
+    var configKeys = ["schemaVersion","revision","enabled","pilot","fields","logo","assignments","templates"];
+    if (config && config.schemaVersion === 2) configKeys.push("userAssignments");
+    checkKeys(config, configKeys, "configuration");
+    if (!supportsSchemaVersion(config.schemaVersion) || typeof config.enabled !== "boolean") fail("Unsupported configuration schema.");
     if (!/^[a-z0-9][a-z0-9._-]{0,63}$/i.test(string(config.revision, 64, "revision", false))) fail("Invalid revision.");
     checkKeys(config.pilot, ["allowedSenderSha256"], "pilot");
     var allowed = config.pilot.allowedSenderSha256;
-    if (!Array.isArray(allowed) || !allowed.length || allowed.length > 100 || allowed.some(function (hash) { return typeof hash !== "string" || !/^[a-f0-9]{64}$/.test(hash); })) fail("Invalid pilot allow-list.");
+    if (!Array.isArray(allowed) || (config.schemaVersion === 1 && !allowed.length) || allowed.length > 100 || allowed.some(function (hash, index) { return typeof hash !== "string" || !/^[a-f0-9]{64}$/.test(hash) || (config.schemaVersion === 2 && allowed.indexOf(hash) !== index); })) fail("Invalid pilot allow-list.");
     checkKeys(config.fields, ["greeting","organization"], "fields");
     string(config.fields.greeting, 500, "greeting", true); string(config.fields.organization, 1000, "organization", true);
     checkKeys(config.logo, ["base64","fileName","alt","width","height"], "logo");
@@ -208,12 +213,31 @@
       checkTokens(template.html, "HTML template"); checkTokens(template.text, "text template");
       validateHtml(template.html);
     });
-    checkKeys(config.assignments, ["newMail","reply","forward"], "assignments");
-    ["newMail","reply","forward"].forEach(function (composeType) {
-      var name = config.assignments[composeType];
-      if (name !== "none" && (typeof name !== "string" || !own.call(config.templates, name))) fail("Invalid template assignment.");
-    });
+    function validateAssignments(assignments) {
+      checkKeys(assignments, ["newMail","reply","forward"], "assignments");
+      ["newMail","reply","forward"].forEach(function (composeType) {
+        var name = assignments[composeType];
+        if (!own.call(assignments, composeType) || (name !== "none" && (typeof name !== "string" || !own.call(config.templates, name)))) fail("Invalid template assignment.");
+      });
+    }
+    validateAssignments(config.assignments);
+    if (config.schemaVersion === 2) {
+      if (!isObject(config.userAssignments) || Object.keys(config.userAssignments).length > 100) fail("Invalid user assignments map.");
+      Object.keys(config.userAssignments).forEach(function (hash) {
+        if (!/^[a-f0-9]{64}$/.test(hash)) fail("Invalid user assignments hash.");
+        validateAssignments(config.userAssignments[hash]);
+      });
+    }
     return config;
+  }
+  function assignmentsForProfile(config, normalizedProfile) {
+    var hash = sha256(normalizedProfile.emailAddress);
+    return config.schemaVersion === 2 && own.call(config.userAssignments, hash) ? config.userAssignments[hash] : config.assignments;
+  }
+  function resolveAssignments(config, profile) {
+    validateConfig(config);
+    var assignments = assignmentsForProfile(config, normalizeProfile(profile));
+    return { newMail: assignments.newMail, reply: assignments.reply, forward: assignments.forward };
   }
   function isAllowedSender(config, profile) {
     var normalized = normalizeProfile(profile);
@@ -224,7 +248,7 @@
     var normalized = normalizeProfile(profile);
     var type = normalizeComposeType(composeType);
     if (bodyType !== "html" && bodyType !== "text") fail("Unsupported body format.");
-    var assignment = config.assignments[type];
+    var assignment = assignmentsForProfile(config, normalized)[type];
     if (!config.enabled || assignment === "none") return "";
     var values = {
       greeting: config.fields.greeting,
@@ -340,11 +364,13 @@
           return invoke(item, "getComposeTypeAsync", []);
         }).then(function (compose) {
           var type = normalizeComposeType(compose && compose.composeType);
-          if (config.assignments[type] === "none") return;
+          if (assignmentsForProfile(config, profile)[type] === "none") return;
           return invoke(item.body, "getTypeAsync", []).then(function (bodyType) {
             if (bodyType !== "html" && bodyType !== "text") fail("Unsupported body format.");
             function insert(logoCid) {
               var signature = render(config, profile, type, logoCid, bodyType);
+              if (bodyType === "html") signature = HTML_RUNTIME_MARKER + signature;
+              if (signature.length > 30000) fail("Signature payload exceeds Outlook's limit.");
               var coercionType = bodyType;
               if (office.CoercionType) coercionType = bodyType === "html" ? office.CoercionType.Html : office.CoercionType.Text;
               mutationStarted = true;
@@ -377,12 +403,16 @@
 
   function checkSignature(event) { return createHandler()(event); }
   var api = {
+    runtimeVersion: RUNTIME_VERSION,
+    htmlRuntimeMarker: HTML_RUNTIME_MARKER,
+    supportsSchemaVersion: supportsSchemaVersion,
     validateConfig: validateConfig,
     render: render,
     sha256: sha256,
     escapeHtml: escapeHtml,
     normalizeProfile: normalizeProfile,
     normalizeComposeType: normalizeComposeType,
+    resolveAssignments: resolveAssignments,
     isAllowedSender: isAllowedSender,
     createHandler: createHandler,
     checkSignature: checkSignature,

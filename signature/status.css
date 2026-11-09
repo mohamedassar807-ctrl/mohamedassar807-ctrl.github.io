@@ -4,6 +4,7 @@ main { padding: 20px; max-width: 640px; margin: auto; }
 h1 { font-size: 24px; line-height: 1.2; margin: 6px 0 16px; }
 p { margin: 12px 0; }
 .eyebrow { color: #3159bb; font-weight: 600; margin: 0; }
+.runtime-info { color: #3159bb; background: #f2f6ff; border: 1px solid #d9e4ff; border-radius: 4px; padding: 8px 10px; margin: 10px 0; font-size: 13px; font-weight: 600; }
 #status { border-left: 3px solid #3159bb; padding: 8px 12px; background: #f2f6ff; }
 dt { color: #526174; font-size: 13px; margin-top: 12px; }
 dd { margin: 0; overflow-wrap: anywhere; }
