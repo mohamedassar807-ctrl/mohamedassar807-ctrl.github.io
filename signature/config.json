@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "revision": "BP-CENTRAL-V1",
+  "schemaVersion": 2,
+  "revision": "BP-CENTRAL-V2-PILOT-20261117",
   "enabled": true,
   "pilot": {
     "allowedSenderSha256": [
@@ -19,14 +19,29 @@
     "height": 34
   },
   "assignments": {
-    "newMail": "standard",
-    "reply": "standard",
-    "forward": "standard"
+    "newMail": "none",
+    "reply": "none",
+    "forward": "none"
   },
   "templates": {
-    "standard": {
-      "html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2937;\">{{greeting}}<br><br><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td valign=\"middle\" style=\"padding-right:10px;border-right:2px solid #3159bb;\">{{logo}}</td><td style=\"padding-left:10px;\"><strong>{{displayName}}</strong><br><a href=\"mailto:{{email}}\">{{email}}</a><br><span style=\"font-size:10pt;color:#526174;\">{{organization}}</span></td></tr></table><p style=\"font-size:9pt;color:#64748b;\">{{revision}}</p></div>",
-      "text": "{{greeting}}\n\n{{displayName}}\n{{email}}\n{{organization}}\n{{revision}}"
+    "v2_new": {
+      "html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2937;\">{{greeting}}<br><strong>V2 NEW MESSAGE</strong><br><br><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td valign=\"middle\" style=\"padding-right:10px;border-right:2px solid #3159bb;\">{{logo}}</td><td style=\"padding-left:10px;\"><strong>{{displayName}}</strong><br><a href=\"mailto:{{email}}\">{{email}}</a><br><span style=\"font-size:10pt;color:#526174;\">{{organization}}</span></td></tr></table><p style=\"font-size:9pt;color:#64748b;\">{{revision}}</p></div>",
+      "text": "{{greeting}}\nV2 NEW MESSAGE\n\n{{displayName}}\n{{email}}\n{{organization}}\n{{revision}}"
+    },
+    "v2_reply": {
+      "html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2937;\">{{greeting}}<br><strong>V2 REPLY</strong><br><br><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td valign=\"middle\" style=\"padding-right:10px;border-right:2px solid #3159bb;\">{{logo}}</td><td style=\"padding-left:10px;\"><strong>{{displayName}}</strong><br><a href=\"mailto:{{email}}\">{{email}}</a><br><span style=\"font-size:10pt;color:#526174;\">{{organization}}</span></td></tr></table><p style=\"font-size:9pt;color:#64748b;\">{{revision}}</p></div>",
+      "text": "{{greeting}}\nV2 REPLY\n\n{{displayName}}\n{{email}}\n{{organization}}\n{{revision}}"
+    },
+    "v2_forward": {
+      "html": "<div style=\"font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1f2937;\">{{greeting}}<br><strong>V2 FORWARD</strong><br><br><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td valign=\"middle\" style=\"padding-right:10px;border-right:2px solid #3159bb;\">{{logo}}</td><td style=\"padding-left:10px;\"><strong>{{displayName}}</strong><br><a href=\"mailto:{{email}}\">{{email}}</a><br><span style=\"font-size:10pt;color:#526174;\">{{organization}}</span></td></tr></table><p style=\"font-size:9pt;color:#64748b;\">{{revision}}</p></div>",
+      "text": "{{greeting}}\nV2 FORWARD\n\n{{displayName}}\n{{email}}\n{{organization}}\n{{revision}}"
+    }
+  },
+  "userAssignments": {
+    "72ebd08b316bd4aea897213ef8dcbeae37b61344724162ed959797736bc73c9d": {
+      "newMail": "v2_new",
+      "reply": "v2_reply",
+      "forward": "v2_forward"
     }
   }
 }
